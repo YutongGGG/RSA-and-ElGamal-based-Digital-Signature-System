@@ -1,0 +1,1003 @@
+#  File name: gui.py
+#:kivy 1.10.0
+#:import C kivy.utils.get_color_from_hex
+#:import FadeTransition kivy.uix.screenmanager.FadeTransition
+
+<RoundedButton@Button>:
+    size_hint: 0.7, 0.06
+    background_color: 0,0,0,0  # the last zero is the critical on, make invisible
+    color: (.21, .21, .21) if self.state == 'normal' else (.95, .95, .95)
+    canvas.before:
+        Color:
+            rgba: (.95, .95, .95, 1) if self.state=='normal' else (.21, .21, .21, 1)  # visual feedback of press
+        RoundedRectangle:
+            pos: self.pos
+            size: self.size
+            radius: [10,]
+
+<LimitButton@Button>:
+    size_hint: 0.7, 0.06
+    background_color: 0,0,0,0  # the last zero is the critical on, make invisible
+    color: (.21, .21, .21) if self.state == 'normal' else (.95, .95, .95)
+    canvas.before:
+        Color:
+            rgba: (.5, .5, .5, 1) if self.state=='normal' else (.21, .21, .21, 1)  # visual feedback of press
+        RoundedRectangle:
+            pos: self.pos
+            size: self.size
+            radius: [10,]
+
+<BlueButton@Button>
+    background_color: 0, 0, 0, 0
+    color: (.95, .95, .95)
+    canvas.before:
+        Color:
+            rgba: (.11, .44, .635, 1) if self.state=='normal' else (.09, .215, .325, 1)
+        RoundedRectangle:
+            pos: self.pos
+            size: self.size
+            radius: [10,]
+
+<GenerateButton@Button>
+    background_color: 0, 0, 0, 0
+    color: (.95, .95, .95)
+    canvas.before:
+        Color:
+            rgba: (.11, .44, .635, 1) if self.state=='normal' else (.09, .215, .325, 1)
+        RoundedRectangle:
+            pos: self.pos
+            size: self.size
+            radius: [0,10, 10, 0]
+
+<NavButton@Button>
+    background_color: 0, 0, 0, 0
+    color: (.95, .95, .95)
+    canvas.before:
+        Color:
+            rgba: (.21, .21, .21, 1) if self.state != 'normal' or self.disabled else (.26, .26, .26, 1)
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+
+ScreenManagement:
+    transition: FadeTransition()
+    MainWindow:
+    SettingKeys:
+    MainWindow2:
+    SettingKeys2:
+
+<MainWindow>:
+    name: "main"
+    cols: 2
+
+    # Left navigation
+    FloatLayout:
+        id: navigation
+        size_hint: 0.4, root.height
+        canvas:
+            Color:
+                rgba: root.dark_color_lighter
+            Rectangle:
+                size: navigation.size
+                pos: navigation.pos
+
+        Label:
+            text: "[font=OpenSans-Bold]RSA Signature[/font]"
+            markup: True
+            font_size: navigation.height // 25
+            color: root.light_color
+            size_hint_x: 0.7
+            pos_hint: {"x": 0.15, "y": 0.4}
+
+        Label:
+            text: "[font=OpenSans-Light]File signing using RSA[/font]"
+            markup: True
+            font_size: navigation.height // 40
+            color: root.light_color
+            size_hint_x: 0.7
+            pos_hint: {"x": 0.15, "y": 0.35}
+
+        # Open file button
+        RoundedButton:
+            pos_hint: {"x": 0.15, "top": 0.75}
+            text: root.regular_font("Open file..")
+            markup: True
+            on_release: root.show_load()
+
+        # Settings button
+        RoundedButton:
+            pos_hint: {"x": 0.15, "top": 0.6}
+            text: "Key settings"
+            on_release: app.root.current = "settings"
+
+        # MainWindow2
+        RoundedButton:
+            pos_hint: {"x": 0.15, "top": 0.45}
+            text: "ElGamal"
+            on_release: app.root.current = "main2"
+
+        # Exit button
+        RoundedButton:
+            text: root.regular_font("Exit")
+            markup: True
+            pos_hint: {"x": 0.15, "top": 0.1}
+            on_release: app.stop()
+
+    # Main part of window
+    BoxLayout:
+        orientation: 'vertical'
+        id: content
+        canvas:
+            Color:
+                rgba: root.dark_color
+            Rectangle:
+                size: content.size
+                pos: content.pos
+
+        # Top navigation
+        BoxLayout:
+            opacity: 1
+            orientation: 'horizontal'
+            id: top_navigation
+            size_hint: 1, 0.075
+            pos_hint: {'x': 0, 'top': 1}
+            canvas:
+                Color:
+                    rgba: root.dark_color_lighter
+                Rectangle:
+                    size: top_navigation.size
+                    pos: top_navigation.pos
+
+            NavButton:
+                text: "Create signature"
+                disabled: root._create_signature
+                on_release: root.create_signature = True
+
+            NavButton:
+                text: "Check signature"
+                disabled: root._check_signature
+                on_release: root.check_signature = True
+
+        FloatLayout:
+            id: main_content
+            size_hint: 1, 0.925
+            pos_hint: {'x': 0, 'top': 1}
+            orientation: 'vertical'
+
+            # Creating signature menu
+            FloatLayout:
+                size_hint: (1, 1) if root._create_signature else (1, 0)
+                pos_hint: {'x': 0, 'top': 1}
+                opacity: 1 if root._create_signature else 0
+
+                Label:
+                    id: opened_status_label
+                    halign: 'left'
+                    valign: 'middle'
+                    size_hint: 0.5, 0.1
+                    pos_hint: {'x': 0.05, 'top': 0.95}
+                    color: root.light_color
+                    text: ''
+                    markup: True
+
+                Label:
+                    id: file_status_label
+                    halign: 'left'
+                    valign: 'center'
+                    size_hint: 0.35, 0.1
+                    pos_hint: {'x': 0.05, 'top': 0.85}
+                    color: root.light_color
+                    text: ''
+                    markup: True
+
+                BoxLayout:
+                    orientation: 'horizontal'
+                    size_hint: 0.9, 0.15
+                    pos_hint: {'x': 0.05, 'top': 0.7}
+                    Label:
+                        text: 'N: '
+                        size_hint: 0.3, 1
+                    TextInput:
+                        id: n_key_input
+                        text: ''
+                        size_hint: 0.7, 1
+                        readonly: True
+
+                BoxLayout:
+                    orientation: 'horizontal'
+                    size_hint: 0.9, 0.2
+                    pos_hint: {'x': 0.05, 'top': 0.5}
+                    Label:
+                        text: 'Signature: '
+                        size_hint: 0.3, 1
+                    TextInput:
+                        id: encryption_signature_input
+                        text: ''
+                        size_hint: 0.7, 1
+                        readonly: True
+                Label:
+                    text: '[font=OpenSans-Light]Hint: Save this signature to check this file later[/font]'
+                    size_hint: 0.95, 0.1
+                    pos_hint: {'x': 0.05, 'top': 0.3}
+                    color: root.light_color
+                    markup: True
+
+                # Signing file button
+                BlueButton:
+                    id: sign_file
+                    text: "Sign file"
+                    size_hint: 0.35, .075
+                    pos_hint: {'x': 0.6, 'top': 0.1}
+                    on_release: root.sign_file(encryption_signature_input)
+
+            # Checking signature menu
+            FloatLayout:
+                size_hint: (1, 1) if root._check_signature else (1, 0)
+                pos_hint: {'x': 0, 'top': 1}
+                opacity: 1 if root._check_signature else 0
+
+                BoxLayout:
+                    size_hint: 0.9, 0.075
+                    pos_hint: {'x': 0.05, 'top': 0.9}
+                    orientation: 'horizontal'
+                    Label:
+                        text: '[font=OpenSans-Light]N: [/font]'
+                        markup: True
+                        size_hint: 0.3, 1
+                    TextInput:
+                        id: n_key_check
+                        size_hint: 0.7, 1
+                        text: ''
+                        multiline: False
+
+                BoxLayout:
+                    size_hint: 0.9, 0.075
+                    pos_hint: {'x': 0.05, 'top': 0.8}
+                    orientation: 'horizontal'
+                    Label:
+                        text: '[font=OpenSans-Light]Public key: [/font]'
+                        markup: True
+                        size_hint: 0.3, 1
+                    TextInput:
+                        id: public_key_check
+                        size_hint: 0.7, 1
+                        text: ''
+                        multiline: False
+
+                BoxLayout:
+                    size_hint: 0.9, 0.075
+                    pos_hint: {'x': 0.05, 'top': 0.7}
+                    orientation: 'horizontal'
+                    Label:
+                        text: '[font=OpenSans-Light]Signature: [/font]'
+                        markup: True
+                        size_hint: 0.3, 1
+                    TextInput:
+                        id: signature_check
+                        size_hint: 0.7, 1
+                        text: ''
+                        multiline: False
+
+                BoxLayout:
+                    size_hint: 0.9, 0.1
+                    pos_hint: {'x': 0.05, 'top': 0.6}
+                    orientation: 'horizontal'
+                    Label:
+                        text: '[font=OpenSans-Light]File hash:[/font]'
+                        markup: True
+                        size_hint: 0.3, 1
+                    Label:
+                        id: check_file_hash
+                        size_hint: 0.7, 1
+                        text: ''
+
+                BoxLayout:
+                    size_hint: 0.9, 0.1
+                    pos_hint: {'x': 0.05, 'top': 0.5}
+                    orientation: 'horizontal'
+                    Label:
+                        text: '[font=OpenSans-Light]Recovered file hash:[/font]'
+                        markup: True
+                        size_hint: 0.3, 1
+                    Label:
+                        id: check_file_hash_recovered
+                        size_hint: 0.7, 1
+                        text: ''
+
+                Label:
+                    id: is_valid_signature_label
+                    size_hint: 0.9, 0.1
+                    pos_hint: {'x': 0.05, 'top': 0.35}
+                    text: ''
+                    markup: True
+                    font_size: 30
+
+                BlueButton:
+                    size_hint: 0.35, 0.075
+                    pos_hint: {'x': 0.6, 'top': 0.1}
+                    text: 'Check signature'
+                    on_release: root.is_signature_valid(signature_check, public_key_check, n_key_check)
+
+<MainWindow2>:
+    name: "main2"
+    cols: 2
+
+    # Left navigation
+    FloatLayout:
+        id: navigation
+        size_hint: 0.4, root.height
+        canvas:
+            Color:
+                rgba: root.dark_color_lighter
+            Rectangle:
+                size: navigation.size
+                pos: navigation.pos
+
+        Label:
+            text: "[font=OpenSans-Bold]ElGamal Signature[/font]"
+            markup: True
+            font_size: navigation.height // 25
+            color: root.light_color
+            size_hint_x: 0.7
+            pos_hint: {"x": 0.15, "y": 0.4}
+
+        Label:
+            text: "[font=OpenSans-Light]File signing using ElGamal[/font]"
+            markup: True
+            font_size: navigation.height // 40
+            color: root.light_color
+            size_hint_x: 0.7
+            pos_hint: {"x": 0.15, "y": 0.35}
+
+        # Open file button
+        LimitButton:
+            pos_hint: {"x": 0.15, "top": 0.75}
+            text: root.regular_font("Open file..")
+            markup: True
+
+        # Settings button
+        RoundedButton:
+            pos_hint: {"x": 0.15, "top": 0.6}
+            text: "Key settings"
+            on_release: app.root.current = "settings2"
+
+        # ReturnRSA button
+        RoundedButton:
+            pos_hint: {"x": 0.15, "top": 0.45}
+            text: "RSA"
+            on_release: app.root.current = "main"
+
+        # Exit button
+        RoundedButton:
+            text: root.regular_font("Exit")
+            markup: True
+            pos_hint: {"x": 0.15, "top": 0.1}
+            on_release: app.stop()
+
+    # Main part of window
+    BoxLayout:
+        orientation: 'vertical'
+        id: content
+        canvas:
+            Color:
+                rgba: root.dark_color
+            Rectangle:
+                size: content.size
+                pos: content.pos
+
+        # Top navigation
+        BoxLayout:
+            opacity: 1
+            orientation: 'horizontal'
+            id: top_navigation
+            size_hint: 1, 0.075
+            pos_hint: {'x': 0, 'top': 1}
+            canvas:
+                Color:
+                    rgba: root.dark_color_lighter
+                Rectangle:
+                    size: top_navigation.size
+                    pos: top_navigation.pos
+
+            NavButton:
+                text: "Create signature"
+                disabled: root._create_signature2
+                on_release: root.create_signature2 = True
+
+            NavButton:
+                text: "Check signature"
+                disabled: root._check_signature2
+                on_release: root.check_signature2 = True
+
+        FloatLayout:
+            id: main_content
+            size_hint: 1, 0.925
+            pos_hint: {'x': 0, 'top': 1}
+            orientation: 'vertical'
+
+            # Creating signature menu
+            FloatLayout:
+                size_hint: (1, 1) if root._create_signature2 else (1, 0)
+                pos_hint: {'x': 0, 'top': 1}
+                opacity: 1 if root._create_signature2 else 0
+
+                Label:
+                    id: opened_status_label2
+                    halign: 'left'
+                    valign: 'middle'
+                    size_hint: 0.5, 0.1
+                    pos_hint: {'x': 0.05, 'top': 0.95}
+                    color: root.light_color
+                    text: ''
+                    markup: True
+
+                Label:
+                    id: file_status_label
+                    halign: 'left'
+                    valign: 'center'
+                    size_hint: 0.35, 0.1
+                    pos_hint: {'x': 0.05, 'top': 0.85}
+                    color: root.light_color
+                    text: ''
+                    markup: True
+
+                BoxLayout:
+                    orientation: 'horizontal'
+                    size_hint: 0.9, 0.15
+                    pos_hint: {'x': 0.05, 'top': 0.8}
+                    Label:
+                        text: 'message: '
+                        size_hint: 0.3, 1
+                    TextInput:
+                        id: _message
+                        text: ''
+                        size_hint: 0.7, 1
+                        readonly: False
+
+                BoxLayout:
+                    orientation: 'horizontal'
+                    size_hint: 0.9, 0.15
+                    pos_hint: {'x': 0.05, 'top': 0.65}
+                    Label:
+                        text: 'K: '
+                        size_hint: 0.3, 1
+                    TextInput:
+                        id: signature_k
+                        text: ''
+                        size_hint: 0.7, 1
+                        readonly: True
+
+
+                BoxLayout:
+                    orientation: 'horizontal'
+                    size_hint: 0.9, 0.15
+                    pos_hint: {'x': 0.05, 'top': 0.5}
+                    Label:
+                        text: 'r: '
+                        size_hint: 0.3, 1
+                    TextInput:
+                        id: signature_r
+                        text: ''
+                        size_hint: 0.7, 1
+                        readonly: True
+
+                BoxLayout:
+                    orientation: 'horizontal'
+                    size_hint: 0.9, 0.15
+                    pos_hint: {'x': 0.05, 'top': 0.35}
+                    Label:
+                        text: 's: '
+                        size_hint: 0.3, 1
+                    TextInput:
+                        id: signature_s
+                        text: ''
+                        size_hint: 0.7, 1
+                        readonly: True
+
+                # Signing file button
+                BlueButton:
+                    id: sign_file
+                    text: "Sign file"
+                    size_hint: 0.35, .075
+                    pos_hint: {'x': 0.6, 'top': 0.1}
+                    on_release: root.sign_message(_message, signature_k, signature_r, signature_s)
+
+            # Checking signature menu
+            FloatLayout:
+                size_hint: (1, 1) if root._check_signature2 else (1, 0)
+                pos_hint: {'x': 0, 'top': 1}
+                opacity: 1 if root._check_signature2 else 0
+
+                BoxLayout:
+                    size_hint: 0.9, 0.1
+                    pos_hint: {'x': 0.05, 'top': 0.9}
+                    orientation: 'horizontal'
+                    Label:
+                        text: '[font=OpenSans-Light]r: [/font]'
+                        markup: True
+                        size_hint: 0.3, 1
+                    TextInput:
+                        id: signature_check_r
+                        size_hint: 0.7, 1
+                        text: ''
+                        readonly: False
+
+                BoxLayout:
+                    size_hint: 0.9, 0.1
+                    pos_hint: {'x': 0.05, 'top': 0.8}
+                    orientation: 'horizontal'
+                    Label:
+                        text: '[font=OpenSans-Light]s: [/font]'
+                        markup: True
+                        size_hint: 0.3, 1
+                    TextInput:
+                        id: signature_check_s
+                        size_hint: 0.7, 1
+                        text: ''
+                        readonly: False
+
+                BoxLayout:
+                    size_hint: 0.9, 0.1
+                    pos_hint: {'x': 0.05, 'top': 0.7}
+                    orientation: 'horizontal'
+                    Label:
+                        text: '[font=OpenSans-Light]message: [/font]'
+                        markup: True
+                        size_hint: 0.3, 1
+                    TextInput:
+                        id: _check_message
+                        size_hint: 0.7, 1
+                        text: ''
+                        readonly: False
+
+                BoxLayout:
+                    size_hint: 0.9, 0.1
+                    pos_hint: {'x': 0.05, 'top': 0.55}
+                    orientation: 'horizontal'
+                    Label:
+                        text: '[font=OpenSans-Light]s1:[/font]'
+                        markup: True
+                        size_hint: 0.3, 1
+                    Label:
+                        id: check_file_hash
+                        size_hint: 0.7, 1
+                        text: ''
+
+                BoxLayout:
+                    size_hint: 0.9, 0.1
+                    pos_hint: {'x': 0.05, 'top': 0.45}
+                    orientation: 'horizontal'
+                    Label:
+                        text: '[font=OpenSans-Light]s2:[/font]'
+                        markup: True
+                        size_hint: 0.3, 1
+                    Label:
+                        id: check_file_hash_recovered
+                        size_hint: 0.7, 1
+                        text: ''
+
+                Label:
+                    id: is_valid_signature_label
+                    size_hint: 0.9, 0.1
+                    pos_hint: {'x': 0.05, 'top': 0.35}
+                    text: ''
+                    markup: True
+                    font_size: 30
+
+                BlueButton:
+                    size_hint: 0.35, 0.075
+                    pos_hint: {'x': 0.6, 'top': 0.1}
+                    text: 'Check signature'
+                    on_release: root.is_signature_valid2(signature_check_r, signature_check_s, _check_message)
+
+<SettingKeys>:
+    name: "settings"
+    cols: 2
+
+    # Left navigation
+    FloatLayout:
+        id: navigation
+        size_hint: 0.4, root.height
+        canvas:
+            Color:
+                rgba: root.dark_color_lighter
+            Rectangle:
+                size: navigation.size
+                pos: navigation.pos
+
+        Label:
+            text: "[font=OpenSans-Bold]RSA Signature[/font]"
+            markup: True
+            font_size: navigation.height // 25
+            color: root.light_color
+            size_hint_x: 0.7
+            pos_hint: {"x": 0.15, "y": 0.4}
+
+        Label:
+            text: "[font=OpenSans-Light]File signing using RSA[/font]"
+            markup: True
+            font_size: navigation.height // 40
+            color: root.light_color
+            size_hint_x: 0.7
+            pos_hint: {"x": 0.15, "y": 0.35}
+
+        # Open file button
+        LimitButton:
+            pos_hint: {"x": 0.15, "top": 0.75}
+            text: root.regular_font("Open file..")
+            markup: True
+
+        # Return button
+        RoundedButton:
+            pos_hint: {"x": 0.15, "top": 0.6}
+            text: "Return"
+            on_release: app.root.current = "main"
+
+        # Exit button
+        RoundedButton:
+            text: root.regular_font("Exit")
+            markup: True
+            pos_hint: {"x": 0.15, "top": 0.1}
+            on_release: app.stop()
+
+
+    BoxLayout:
+        orientation: 'vertical'
+        id: content
+        canvas:
+            Color:
+                rgba: root.dark_color
+            Rectangle:
+                size: content.size
+                pos: content.pos
+
+        BoxLayout:
+            size_hint: 0.4, 0.2
+            padding: [10, 15, 0, 10]
+            Label:
+                text: '[font=OpenSans-Light]Setting up keys[/font]'
+                markup: True
+                font_size: 50
+        BoxLayout:
+            orientation: 'vertical'
+            padding: 10
+
+            FloatLayout:
+                Label:
+                    pos_hint: {'x': 0, 'top': 1}
+                    size_hint: .15, .1
+                    halign: 'left'
+                    text: 'P:'
+                    font_size: 30
+
+                BoxLayout:
+                    pos_hint: {'x': .05, 'top': 0.9}
+                    size_hint: .95, .075
+                    orientation: 'horizontal'
+                    TextInput:
+                        id: p_value
+                        multiline: False
+
+                    GenerateButton:
+                        size_hint_x: 0.3
+                        text: 'Generate'
+                        on_release: root.generate_random_key(p_value, 'p')
+
+
+                Label:
+                    pos_hint: {'x': 0, 'top': 0.8}
+                    size_hint: .15, .1
+                    halign: 'left'
+                    text: 'Q:'
+                    font_size: 30
+
+                BoxLayout:
+                    pos_hint: {'x': .05, 'top': 0.7}
+                    size_hint: .95, .075
+                    orientation: 'horizontal'
+                    TextInput:
+                        id: q_value
+                        multiline: False
+
+                    GenerateButton:
+                        size_hint_x: 0.3
+                        text: 'Generate'
+                        on_release: root.generate_random_key(q_value, 'q')
+
+
+                Label:
+                    pos_hint: {'x': 0, 'top': 0.6}
+                    size_hint: .25, .1
+                    halign: 'left'
+                    text: 'Public key:'
+                    font_size: 30
+
+                BoxLayout:
+                    pos_hint: {'x': .05, 'top': 0.5}
+                    size_hint: .95, .075
+                    orientation: 'horizontal'
+                    TextInput:
+                        id: e_value
+                        multiline: False
+
+                    GenerateButton:
+                        size_hint_x: 0.3
+                        text: 'Generate'
+                        on_release: root.generate_private_public_key(e_value, 'e')
+
+
+                Label:
+                    pos_hint: {'x': 0, 'top': 0.4}
+                    size_hint: .25, .1
+                    halign: 'left'
+                    text: 'Private key:'
+                    font_size: 30
+
+                BoxLayout:
+                    pos_hint: {'x': .05, 'top': 0.3}
+                    size_hint: .95, .075
+                    orientation: 'horizontal'
+                    TextInput:
+                        id: d_value
+                        multiline: False
+
+
+                    GenerateButton:
+                        size_hint_x: 0.3
+                        text: 'Generate'
+                        on_release: root.generate_private_public_key(d_value, 'd')
+
+                BoxLayout:
+                    pos_hint: {'x': .7, 'top': 0.1}
+                    size_hint: .28, .075
+
+                    BlueButton:
+                        size_hint: 1, 1
+                        text: 'Fill & Save'
+                        on_release: root.save_keys(p_value, q_value, e_value, d_value)
+
+<SettingKeys2>:
+    name: "settings2"
+    cols: 2
+
+    # Left navigation
+    FloatLayout:
+        id: navigation
+        size_hint: 0.4, root.height
+        canvas:
+            Color:
+                rgba: root.dark_color_lighter
+            Rectangle:
+                size: navigation.size
+                pos: navigation.pos
+
+        Label:
+            text: "[font=OpenSans-Bold]ElGamal Signature[/font]"
+            markup: True
+            font_size: navigation.height // 25
+            color: root.light_color
+            size_hint_x: 0.7
+            pos_hint: {"x": 0.15, "y": 0.4}
+
+        Label:
+            text: "[font=OpenSans-Light]File signing using ElGamal[/font]"
+            markup: True
+            font_size: navigation.height // 40
+            color: root.light_color
+            size_hint_x: 0.7
+            pos_hint: {"x": 0.15, "y": 0.35}
+
+        # Open file button
+        LimitButton:
+            pos_hint: {"x": 0.15, "top": 0.75}
+            text: root.regular_font("Open file..")
+            markup: True
+
+        # Return button
+        RoundedButton:
+            pos_hint: {"x": 0.15, "top": 0.6}
+            text: "Return"
+            on_release: app.root.current = "main2"
+
+        # Exit button
+        RoundedButton:
+            text: root.regular_font("Exit")
+            markup: True
+            pos_hint: {"x": 0.15, "top": 0.1}
+            on_release: app.stop()
+
+
+    BoxLayout:
+        orientation: 'vertical'
+        id: content
+        canvas:
+            Color:
+                rgba: root.dark_color
+            Rectangle:
+                size: content.size
+                pos: content.pos
+
+        BoxLayout:
+            size_hint: 0.4, 0.2
+            padding: [10, 15, 0, 10]
+            Label:
+                text: '[font=OpenSans-Light]Setting up keys[/font]'
+                markup: True
+                font_size: 50
+        BoxLayout:
+            orientation: 'vertical'
+            padding: 10
+
+            FloatLayout:
+                Label:
+                    pos_hint: {'x': 0, 'top': 1}
+                    size_hint: .15, .1
+                    halign: 'left'
+                    text: 'P:'
+                    font_size: 30
+
+                BoxLayout:
+                    pos_hint: {'x': .05, 'top': 0.9}
+                    size_hint: .95, .075
+                    orientation: 'horizontal'
+                    TextInput:
+                        id: p_value
+                        multiline: False
+
+                    GenerateButton:
+                        size_hint_x: 0.3
+                        text: 'Generate'
+                        on_release: root.generate_random_key2(p_value, 'p')
+
+
+                Label:
+                    pos_hint: {'x': 0, 'top': 0.8}
+                    size_hint: .15, .1
+                    halign: 'left'
+                    text: 'a:'
+                    font_size: 30
+
+                BoxLayout:
+                    pos_hint: {'x': .05, 'top': 0.7}
+                    size_hint: .95, .075
+                    orientation: 'horizontal'
+                    TextInput:
+                        id: a_value
+                        multiline: False
+
+                    GenerateButton:
+                        size_hint_x: 0.3
+                        text: 'Generate'
+                        on_release: root.generate_random_key2(a_value, 'a')
+
+
+                Label:
+                    pos_hint: {'x': 0, 'top': 0.6}
+                    size_hint: .25, .1
+                    halign: 'left'
+                    text: 'Private key(x):'
+                    font_size: 30
+
+                BoxLayout:
+                    pos_hint: {'x': .05, 'top': 0.5}
+                    size_hint: .95, .075
+                    orientation: 'horizontal'
+                    TextInput:
+                        id: x_value
+                        multiline: False
+
+                    GenerateButton:
+                        size_hint_x: 0.3
+                        text: 'Generate'
+                        on_release: root.generate_private_key2(x_value, 'X')
+
+
+                Label:
+                    pos_hint: {'x': 0, 'top': 0.4}
+                    size_hint: .25, .1
+                    halign: 'left'
+                    text: 'Public key(y):'
+                    font_size: 30
+
+                BoxLayout:
+                    pos_hint: {'x': .05, 'top': 0.3}
+                    size_hint: .95, .075
+                    orientation: 'horizontal'
+                    TextInput:
+                        id: y_value
+                        multiline: False
+
+
+                    GenerateButton:
+                        size_hint_x: 0.3
+                        text: 'Generate'
+                        on_release: root.generate_public_key2(y_value, 'Y')
+
+                BoxLayout:
+                    pos_hint: {'x': .7, 'top': 0.1}
+                    size_hint: .28, .075
+
+                    BlueButton:
+                        size_hint: 1, 1
+                        text: 'Fill & Save'
+                        on_release: root.save_keys2(p_value, a_value, x_value, y_value)
+
+
+<ErrorDialog>:
+    id: error_dialog
+    background_color: 0, 0, 0, 0
+    canvas.before:
+        Color:
+            rgba: (.21, .21, .21, 1)
+        Rectangle:
+            size: error_dialog.size
+            pos: error_dialog.pos
+    BoxLayout:
+        size: root.size
+        pos: root.pos
+        orientation: "vertical"
+        Label:
+            text: root.message
+
+        BoxLayout:
+            size_hint_y: None
+            height: 30
+            BlueButton:
+                text: "Close"
+                on_release: root.close()
+
+
+<LoadDialog>:
+    BoxLayout:
+        size: root.size
+        pos: root.pos
+        orientation: "vertical"
+        FileChooserIconView:
+            id: filechooser
+            path: root.get_default_path()
+            canvas.before:
+                Color:
+                    rgba: (.21, .21, .21, 1)
+                Rectangle:
+                    size: self.size
+                    pos: 0, 0
+
+        BoxLayout:
+            size_hint_y: None
+            height: 30
+            RoundedButton:
+                size_hint: 1, 1
+                text: "Cancel"
+                on_release: root.cancel()
+
+            BlueButton:
+                text: "Load"
+                on_release: root.load(filechooser.path, filechooser.selection)
+
+<SaveDialog>:
+    text_input: text_input
+    BoxLayout:
+        size: root.size
+        pos: root.pos
+        orientation: "vertical"
+        FileChooserListView:
+            id: filechooser
+            on_selection: text_input.text = self.selection and self.selection[0] or ''
+
+        TextInput:
+            id: text_input
+            size_hint_y: None
+            height: 30
+            multiline: False
+
+        BoxLayout:
+            size_hint_y: None
+            height: 30
+            Button:
+                text: "Cancel"
+                on_release: root.cancel()
+
+            Button:
+                text: "Save"
+                on_release: root.save(filechooser.path, text_input.text)
