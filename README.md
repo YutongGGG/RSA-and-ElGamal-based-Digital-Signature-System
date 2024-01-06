@@ -2,7 +2,7 @@
 
 This digital signature system, developed in Python 3.7 with Kivy 1.10, implements key settings for RSA and ElGamal algorithms, file and string signing based on Hash and MD5 transformations, and digital signature verification.
 
-## Install kivy 
+## Set up kivy 
 
 1. Create a new environment:
 ```bash
