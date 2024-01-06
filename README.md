@@ -21,4 +21,4 @@ conda install -c conda-forge kivy
 ## Running the Application
 To run the application, execute the gui.py file.
 
-![Digital Signature System](https://github.com/yourusername/yourrepository/blob/main/images/digital_signature_system.png)
+![Digital Signature System](https://github.com/YutongGGG/RSA-and-ElGamal-based-digital-signature-system/blob/main/picture.jpg)
