@@ -18,8 +18,8 @@ conda activate mykivyenv
 conda install -c conda-forge kivy
 ```
 
-## Running the Application
-To run the application, execute the gui.py file.
+## Run the System
+To run the system, execute the gui.py file.
 
 <p align="left">
   <img src="https://github.com/YutongGGG/RSA-and-ElGamal-based-digital-signature-system/blob/main/picture.jpg" alt="Digital Signature System_RSA" width="300"/>
